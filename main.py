@@ -12,8 +12,8 @@ n = (x >= 0) & (x <= 10000)
 x = x[n]
 y = np.abs(y[n])
 y_db = 20 * np.log10(y) 
-plt.figure(figsize=(10, 6))
-plt.plot(x, y_db)
-
-plt.grid()
+fig, pl = plt.subplots(1, 2, figsize=(15, 5))
+pl[0].plot(x, y_db)
+pl[1].plot(x, y)
+plt.tight_layout()
 plt.show()
