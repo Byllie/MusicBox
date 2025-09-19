@@ -9,10 +9,15 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 wav_files = [f for f in os.listdir("source") if f.endswith(".wav")]
 
-def local_max_3(x, y):
+def zero_padding(data, fs, sec):
+        pad = np.zeros(sec*fs, dtype=data.dtype)
+        pad[:len(data)] = data
+        return pad
+
+def local_max_5(x, y):
     y_copy = y.copy()
     list_max = []
-    for _ in range(3):
+    for _ in range(5):
         i = np.argmax(y_copy)
         list_max.append((x[i], y_copy[i]))
         mask = (x > x[i] - 150) & (x < x[i] + 150)
@@ -21,6 +26,7 @@ def local_max_3(x, y):
 
 def plot_fft(filename):
     fs, data = wavfile.read("source/" + filename)
+    data =  zero_padding(data, fs, 4)
     N = len(data)
     T = 1.0 / fs
     y = np.fft.fft(data)
@@ -30,14 +36,14 @@ def plot_fft(filename):
     y_plot = np.abs(y[n])
     y_db = 20 * np.log10(y_plot + 1e-12)
     
-    list_max = local_max_3(x_plot, y_plot)
-    colors = ["red", "green", "blue"]
+    list_max = local_max_5(x_plot, y_plot)
+    colors = ["red", "green", "blue", "orange", "purple"]
 
     pl[0].clear()
     pl[1].clear()
     
     pl[0].plot(x_plot, y_db)
-    for i in range(3):
+    for i in range(5):
         freq, amp = list_max[i]
         db_val = 20 * np.log10(amp)
         pl[0].plot(freq, db_val, "o", color=colors[i])
@@ -47,7 +53,7 @@ def plot_fft(filename):
     pl[0].grid()
     
     pl[1].plot(x_plot, y_plot)
-    for i in range(3):
+    for i in range(5):
         freq, amp = list_max[i]
         pl[1].plot(freq, amp, "o", color=colors[i])
     pl[1].set_title("Raw Spectrum")
@@ -55,7 +61,7 @@ def plot_fft(filename):
     pl[1].set_ylabel("Amplitude")
     pl[1].grid()
 
-    for i in range(3):
+    for i in range(5):
         freq, _ = list_max[i]
         freq_labels[i].config(text=f"{freq:.1f} Hz", fg=colors[i])
 
@@ -72,7 +78,7 @@ selected_file.set(wav_files[0])
 dropdown = ttk.Combobox(menu_frame, textvariable=selected_file, values=wav_files, state="readonly")
 dropdown.pack(pady=5)
 
-freq_labels = [tk.Label(menu_frame, text="") for _ in range(3)]
+freq_labels = [tk.Label(menu_frame, text="") for _ in range(5)]
 for lbl in freq_labels:
     lbl.pack(pady=2)
 
