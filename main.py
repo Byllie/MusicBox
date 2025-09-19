@@ -1,9 +1,9 @@
 import os
+import tkinter as tk
+from tkinter import ttk
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.io import wavfile
-import tkinter as tk
-from tkinter import ttk
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 
@@ -40,10 +40,8 @@ def plot_fft(filename):
     exclude_hz = int(selected_exclude.get())
     list_max = local_max_5(x_plot, y_plot, exclude_hz)
     colors = ["red", "green", "blue", "orange", "purple"]
-
     pl[0].clear()
     pl[1].clear()
-    
     pl[0].plot(x_plot, y_db)
     for i in range(5):
         freq, amp = list_max[i]
@@ -53,7 +51,6 @@ def plot_fft(filename):
     pl[0].set_xlabel("Frequency (Hz)")
     pl[0].set_ylabel("Amplitude (dB)")
     pl[0].grid()
-    
     pl[1].plot(x_plot, y_plot)
     for i in range(5):
         freq, amp = list_max[i]
@@ -62,11 +59,9 @@ def plot_fft(filename):
     pl[1].set_xlabel("Frequency (Hz)")
     pl[1].set_ylabel("Amplitude")
     pl[1].grid()
-
     for i in range(5):
         freq, _ = list_max[i]
         freq_labels[i].config(text=f"{freq:.1f} Hz", fg=colors[i])
-
     canvas.draw()
 
 root = tk.Tk()
