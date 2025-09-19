@@ -10,7 +10,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 wav_files = [f for f in os.listdir("source") if f.endswith(".wav")]
 
 def plot_fft(filename):
-    fs, data = wavfile.read("source/"+filename)
+    fs, data = wavfile.read("source/" + filename)
     N = len(data)
     T = 1.0 / fs
     y = np.fft.fft(data)
@@ -18,11 +18,29 @@ def plot_fft(filename):
     n = (x >= 0) & (x <= 10000)
     x_plot = x[n]
     y_plot = np.abs(y[n])
-    y_db = 20 * np.log10(y_plot)
+    y_db = 20 * np.log10(y_plot + 1e-12)
+    i_max = np.argmax(y_plot)
+    freq_max = x_plot[i_max]
+    amp_max = y_plot[i_max]
+    db_max = y_db[i_max]
+    
     pl[0].clear()
     pl[1].clear()
+    
     pl[0].plot(x_plot, y_db)
+    pl[0].plot(freq_max, db_max, "ro")
+    pl[0].set_title("Spectrum (dB)")
+    pl[0].set_xlabel("Frequency (Hz)")
+    pl[0].set_ylabel("Amplitude (dB)")
+    pl[0].grid()
+    
     pl[1].plot(x_plot, y_plot)
+    pl[1].plot(freq_max, amp_max, "ro")
+    pl[1].set_title("Raw Spectrum")
+    pl[1].set_xlabel("Frequency (Hz)")
+    pl[1].set_ylabel("Amplitude")
+    pl[1].grid()
+    freq_label.config(text=f"Max frequency: {freq_max} Hz")
     canvas.draw()
 
 root = tk.Tk()
@@ -30,11 +48,13 @@ frame = tk.Frame(root)
 frame.pack(padx=10, pady=10)
 menu_frame = tk.Frame(frame)
 menu_frame.pack(side=tk.LEFT, padx=10)
-tk.Label(menu_frame, text="Audio file :").pack(pady=5)
+tk.Label(menu_frame, text="Audio file:").pack(pady=5)
 selected_file = tk.StringVar()
 selected_file.set(wav_files[0])
 dropdown = ttk.Combobox(menu_frame, textvariable=selected_file, values=wav_files, state="readonly")
 dropdown.pack(pady=5)
+freq_label = tk.Label(menu_frame, text="")
+freq_label.pack(pady=5)
 plot_frame = tk.Frame(frame)
 plot_frame.pack(side=tk.RIGHT)
 fig, pl = plt.subplots(1, 2, figsize=(10, 5))
