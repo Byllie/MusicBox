@@ -8,25 +8,26 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 
 wav_files = [f for f in os.listdir("source") if f.endswith(".wav")]
+exclude_options = [50, 100, 150, 200]
 
 def zero_padding(data, fs, sec):
-        pad = np.zeros(sec*fs, dtype=data.dtype)
-        pad[:len(data)] = data
-        return pad
+    pad = np.zeros(sec*fs, dtype=data.dtype)
+    pad[:len(data)] = data
+    return pad
 
-def local_max_5(x, y):
+def local_max_5(x, y, exclude_hz):
     y_copy = y.copy()
     list_max = []
     for _ in range(5):
         i = np.argmax(y_copy)
         list_max.append((x[i], y_copy[i]))
-        mask = (x > x[i] - 150) & (x < x[i] + 150)
+        mask = (x > x[i] - exclude_hz) & (x < x[i] + exclude_hz)
         y_copy[mask] = 0
     return list_max
 
 def plot_fft(filename):
     fs, data = wavfile.read("source/" + filename)
-    data =  zero_padding(data, fs, 4)
+    data = zero_padding(data, fs, 4)
     N = len(data)
     T = 1.0 / fs
     y = np.fft.fft(data)
@@ -36,7 +37,8 @@ def plot_fft(filename):
     y_plot = np.abs(y[n])
     y_db = 20 * np.log10(y_plot + 1e-12)
     
-    list_max = local_max_5(x_plot, y_plot)
+    exclude_hz = int(selected_exclude.get())
+    list_max = local_max_5(x_plot, y_plot, exclude_hz)
     colors = ["red", "green", "blue", "orange", "purple"]
 
     pl[0].clear()
@@ -78,6 +80,12 @@ selected_file.set(wav_files[0])
 dropdown = ttk.Combobox(menu_frame, textvariable=selected_file, values=wav_files, state="readonly")
 dropdown.pack(pady=5)
 
+tk.Label(menu_frame, text="Exclude around max (Hz):").pack(pady=5)
+selected_exclude = tk.StringVar()
+selected_exclude.set(str(exclude_options[2]))
+exclude_dropdown = ttk.Combobox(menu_frame, textvariable=selected_exclude, values=exclude_options, state="readonly")
+exclude_dropdown.pack(pady=5)
+
 freq_labels = [tk.Label(menu_frame, text="") for _ in range(5)]
 for lbl in freq_labels:
     lbl.pack(pady=2)
@@ -88,10 +96,11 @@ fig, pl = plt.subplots(1, 2, figsize=(10, 5))
 canvas = FigureCanvasTkAgg(fig, master=plot_frame)
 canvas.get_tk_widget().pack()
 
-def on_select(event):
+def on_select(event=None):
     plot_fft(selected_file.get())
 
 dropdown.bind("<<ComboboxSelected>>", on_select)
+exclude_dropdown.bind("<<ComboboxSelected>>", on_select)
 plot_fft(selected_file.get())
 
 root.mainloop()
