@@ -5,6 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.io import wavfile
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import sounddevice as sd
 
 
 wav_files = [f for f in os.listdir("source") if f.endswith(".wav")]
@@ -36,7 +37,6 @@ def plot_fft(filename):
     x_plot = x[n]
     y_plot = np.abs(y[n])
     y_db = 20 * np.log10(y_plot + 1e-12)
-    
     exclude_hz = int(selected_exclude.get())
     list_max = local_max_5(x_plot, y_plot, exclude_hz)
     colors = ["red", "green", "blue", "orange", "purple"]
@@ -64,11 +64,20 @@ def plot_fft(filename):
         freq_labels[i].config(text=f"{freq:.1f} Hz", fg=colors[i])
     canvas.draw()
 
+def play_audio():
+    fs, data = wavfile.read("source/" + selected_file.get())
+    sd.stop()
+    sd.play(data, fs)
+
 root = tk.Tk()
 frame = tk.Frame(root)
 frame.pack(padx=10, pady=10)
 menu_frame = tk.Frame(frame)
 menu_frame.pack(side=tk.LEFT, padx=10)
+
+btn = tk.Button(menu_frame, text="🔊", command=play_audio)
+btn.pack(pady=5)
+
 tk.Label(menu_frame, text="Audio file:").pack(pady=5)
 selected_file = tk.StringVar()
 selected_file.set(wav_files[0])
