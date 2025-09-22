@@ -9,7 +9,7 @@ import sounddevice as sd
 
 
 wav_files = [f for f in os.listdir("source") if f.endswith(".wav")]
-exclude_options = [50, 100, 150, 200]
+exclude_options = [50, 100, 150, 200, 250, 300, 350, 400, 450 ,500, 550, 600, 650, 700, 750, 800, 850, 900, 950, 1000]
 
 def zero_padding(data, fs, sec):
     pad = np.zeros(sec*fs, dtype=data.dtype)
@@ -39,6 +39,7 @@ def plot_fft(filename):
     y_db = 20 * np.log10(y_plot + 1e-12)
     exclude_hz = int(selected_exclude.get())
     list_max = local_max_5(x_plot, y_plot, exclude_hz)
+    max_amp = list_max[0][1]
     colors = ["red", "green", "blue", "orange", "purple"]
     pl[0].clear()
     pl[1].clear()
@@ -60,8 +61,9 @@ def plot_fft(filename):
     pl[1].set_ylabel("Amplitude")
     pl[1].grid()
     for i in range(5):
-        freq, _ = list_max[i]
-        freq_labels[i].config(text=f"{freq:.1f} Hz", fg=colors[i])
+        freq, amp = list_max[i]
+        diff_db = 20 * np.log10(amp / max_amp + 1e-12)
+        freq_labels[i].config(text=f"{freq:.1f} Hz ({diff_db:.1f} dB)", fg=colors[i])
     canvas.draw()
 
 def play_audio():
